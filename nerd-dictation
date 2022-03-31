@@ -864,9 +864,14 @@ def text_from_vosk_pipe(
                 if json_text != timeout_text_prev:
                     timeout_text_prev = json_text
                     timeout_time_prev = time.time()
+                    said_something = True
                 elif time.time() - timeout_time_prev > timeout:
                     if code == 0:
-                        code = 1  # The time was exceeded, exit!
+                        if said_something:
+                            print (".\n")
+                            sys.stdout.flush()
+                            said_something = False
+                        #code = 1  # The time was exceeded, exit!
 
     # Close the recording process.
     import signal
@@ -1296,7 +1301,8 @@ This creates the directory used to store internal data, so other commands such a
             vosk_model_dir=args.vosk_model_dir,
             pulse_device_name=args.pulse_device_name,
             sample_rate=args.sample_rate,
-            progressive=not (args.defer_output or args.output == "STDOUT"),
+            #progressive=not (args.defer_output or args.output == "STDOUT"),
+            progressive=True,
             progressive_continuous=args.progressive_continuous,
             full_sentence=args.full_sentence,
             numbers_as_digits=args.numbers_as_digits,
