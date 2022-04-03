@@ -852,13 +852,14 @@ def text_from_vosk_pipe(
                 # if use_timeout:
                 json_text = rec.PartialResult()
                 # Without this, there are *many* calls with the same partial text.
-                if json_text_partial_prev != json_text:
-                    json_text_partial_prev = json_text
+                if not reread:
+                    if json_text_partial_prev != json_text:
+                        json_text_partial_prev = json_text
 
-                    json_data = json.loads(json_text)
-                    text = json_data["partial"]
-                    if text and not reread:
-                        handle_fn_wrapper(text, True)
+                        json_data = json.loads(json_text)
+                        text = json_data["partial"]
+                        if text:
+                            handle_fn_wrapper(text, True)
 
             # Monitor the partial output.
             # Finish if no changes are made for `timeout` seconds.
