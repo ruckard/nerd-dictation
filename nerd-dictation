@@ -33,6 +33,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import pyttsx3
 
 # Types.
 from typing import (
@@ -924,6 +925,15 @@ def main_begin(
     This is terminated by the ``end`` or ``cancel`` actions.
     """
 
+    if reread:
+        reread_engine = pyttsx3.init()
+        reread_engine.setProperty('rate', 70)
+        reread_engine.setProperty('voice', 'mb-es1')
+        reread_engine.setProperty('volume', 1)
+        reread_engine.setProperty('pitch', 40) # Default: 50
+    else:
+        reread_engine = None
+
     # Find language model in:
     # - `--vosk-model-dir=...`
     # - `~/.config/nerd-dictation/model`
@@ -1028,7 +1038,16 @@ def main_begin(
     #
     # Handled the resulting text
     #
-    if output == "SIMULATE_INPUT":
+    if reread:
+        def handle_fn(text: str, delete_prev_chars: int) -> None:
+            if delete_prev_chars:
+                sys.stdout.write("\x08" * delete_prev_chars)
+            sys.stdout.write(text)
+            sys.stdout.flush()
+            if not (text == ""):
+                reread_engine.say(text)
+                reread_engine.runAndWait()
+    elif output == "SIMULATE_INPUT":
 
         def handle_fn(text: str, delete_prev_chars: int) -> None:
             if delete_prev_chars:
