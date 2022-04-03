@@ -857,7 +857,7 @@ def text_from_vosk_pipe(
 
                     json_data = json.loads(json_text)
                     text = json_data["partial"]
-                    if text:
+                    if text and not reread:
                         handle_fn_wrapper(text, True)
 
             # Monitor the partial output.
