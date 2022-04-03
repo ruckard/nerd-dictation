@@ -712,6 +712,7 @@ def text_from_vosk_pipe(
     timeout: float,
     idle_time: float,
     progressive: bool,
+    reread: bool,
     progressive_continuous: bool,
     sample_rate: int,
     pulse_device_name: str = "",
@@ -864,9 +865,15 @@ def text_from_vosk_pipe(
                 if json_text != timeout_text_prev:
                     timeout_text_prev = json_text
                     timeout_time_prev = time.time()
+                    said_something = True
                 elif time.time() - timeout_time_prev > timeout:
                     if code == 0:
-                        code = 1  # The time was exceeded, exit!
+                        if reread and said_something:
+                            print (".\n")
+                            sys.stdout.flush()
+                            said_something = False
+                        elif not reread:
+                            code = 1  # The time was exceeded, exit!
 
     # Close the recording process.
     import signal
@@ -899,6 +906,7 @@ def main_begin(
     pulse_device_name: str = "",
     sample_rate: int = 44100,
     progressive: bool = False,
+    reread: bool = False,
     progressive_continuous: bool = False,
     full_sentence: bool = False,
     numbers_as_digits: bool = False,
@@ -1045,6 +1053,7 @@ def main_begin(
         timeout=timeout,
         idle_time=idle_time,
         progressive=progressive,
+        reread=reread,
         progressive_continuous=progressive_continuous,
         exit_fn=exit_fn,
         process_fn=process_fn,
@@ -1175,6 +1184,19 @@ This creates the directory used to store internal data, so other commands such a
     )
 
     subparse.add_argument(
+        "--reread",
+        dest="reread",
+        default=False,
+        action="store_true",
+        help=(
+            "Enable this option if you want your audio to be reread.\n"
+            "Turns on progressive mode.\n"
+            "timeout is no longer used to stop the program but to initiate the reread.\n"
+        ),
+        required=False,
+    )
+
+    subparse.add_argument(
         "--timeout",
         dest="timeout",
         default=0.0,
@@ -1296,7 +1318,8 @@ This creates the directory used to store internal data, so other commands such a
             vosk_model_dir=args.vosk_model_dir,
             pulse_device_name=args.pulse_device_name,
             sample_rate=args.sample_rate,
-            progressive=not (args.defer_output or args.output == "STDOUT"),
+            progressive=args.reread or (not (args.defer_output or args.output == "STDOUT")),
+            reread=args.reread,
             progressive_continuous=args.progressive_continuous,
             full_sentence=args.full_sentence,
             numbers_as_digits=args.numbers_as_digits,
