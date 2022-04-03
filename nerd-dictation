@@ -909,6 +909,10 @@ def main_begin(
     sample_rate: int = 44100,
     progressive: bool = False,
     reread: bool = False,
+    reread_rate: int = 80,
+    reread_voice: str = "us1",
+    reread_volume: int = 1,
+    reread_pitch: int = 50,
     progressive_continuous: bool = False,
     full_sentence: bool = False,
     numbers_as_digits: bool = False,
@@ -928,10 +932,10 @@ def main_begin(
 
     if reread:
         reread_engine = pyttsx3.init()
-        reread_engine.setProperty('rate', 70)
-        reread_engine.setProperty('voice', 'mb-es1')
-        reread_engine.setProperty('volume', 1)
-        reread_engine.setProperty('pitch', 40) # Default: 50
+        reread_engine.setProperty('rate', reread_rate)
+        reread_engine.setProperty('voice', reread_voice)
+        reread_engine.setProperty('volume', reread_voice)
+        reread_engine.setProperty('pitch', reread_pitch) # Default: 50
     else:
         reread_engine = None
 
@@ -1217,6 +1221,45 @@ This creates the directory used to store internal data, so other commands such a
     )
 
     subparse.add_argument(
+        "--reread-rate",
+        dest="reread_rate",
+        default=80,
+        type=int,
+        help=("The sample rate to use for playing back.\n" "Defaults to 80."),
+        required=False,
+    )
+
+    subparse.add_argument(
+        "--reread-voice",
+        dest="reread_voice",
+        default="us1",
+        type=str,
+        help=(
+            "The name of the voice to use for playing back.\n"
+            'See the output of "espeak-ng --voices=en" or "espeak-ng --voices=es" to find voices names (using the identifier following "File:").'
+        ),
+        required=False,
+    )
+
+    subparse.add_argument(
+        "--reread-volume",
+        dest="reread_volume",
+        default=1,
+        type=int,
+        help=("The volume to use for playing back.\n" "Defaults to 1 (which means 100%)."),
+        required=False,
+    )
+
+    subparse.add_argument(
+        "--reread-pitch",
+        dest="reread_pitch",
+        default=50,
+        type=int,
+        help=("The pitch to use for playing back.\n" "Defaults to 50."),
+        required=False,
+    )
+
+    subparse.add_argument(
         "--timeout",
         dest="timeout",
         default=0.0,
@@ -1340,6 +1383,10 @@ This creates the directory used to store internal data, so other commands such a
             sample_rate=args.sample_rate,
             progressive=args.reread or (not (args.defer_output or args.output == "STDOUT")),
             reread=args.reread,
+            reread_rate=args.reread_rate,
+            reread_voice=args.reread_voice,
+            reread_volume=args.reread_volume,
+            reread_pitch=args.reread_pitch,
             progressive_continuous=args.progressive_continuous,
             full_sentence=args.full_sentence,
             numbers_as_digits=args.numbers_as_digits,
